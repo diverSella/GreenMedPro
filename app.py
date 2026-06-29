@@ -17,7 +17,7 @@ from patologias import CatalogoPatologias, TipoIndicacion, TipoEvidencia
 from referencias import CatalogoReferencias
 from comparativa import tabla_equivalencias
 from receta import generar_receta_html
-from exportar_pdf import generar_pdf_bytes
+# from exportar_pdf import generar_pdf_bytes
 
 # ============================================
 # CONFIGURACIÓN DE LA PÁGINA
