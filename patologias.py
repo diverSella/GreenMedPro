@@ -41,7 +41,7 @@ class Patologia:
     info_prospecto: List[str] = None
     dosis_opciones: List[float] = None
     peso_referencia: float = 70.0
-    prospectos: List[Dict] = None  # Lista de prospectos descargables
+    prospectos: List[Dict] = None
 
 class CatalogoPatologias:
     
@@ -76,8 +76,8 @@ class CatalogoPatologias:
                     "Evidencia: Alta - Múltiples ensayos clínicos"
                 ],
                 prospectos=[
-                    {"nombre": "Xpectra 10 - Prospecto", "archivo": "Xpectra-10_Prospecto_V.02.pdf", "descripcion": "Extracto de Cannabis Sativa L - Solución oral gotas (10%)"},
-                    {"nombre": "Xatiplex - Prospecto", "archivo": "Xatiplex_Prospecto.pdf", "descripcion": "CBD purificado - Solución oral jeringa"}
+                    {"nombre": "Xpectra - Prospecto", "archivo": "Xpectra.pdf", "descripcion": "Extracto de Cannabis Sativa L - Solución oral gotas (10%)"},
+                    {"nombre": "Xatiplex - Prospecto", "archivo": "Xatiplex.pdf", "descripcion": "CBD purificado - Solución oral jeringa"}
                 ]
             ),
             "Síndrome de Dravet (SD)": Patologia(
@@ -106,8 +106,8 @@ class CatalogoPatologias:
                     "Evidencia: Alta - Múltiples ensayos clínicos"
                 ],
                 prospectos=[
-                    {"nombre": "Xpectra 10 - Prospecto", "archivo": "Xpectra-10_Prospecto_V.02.pdf", "descripcion": "Extracto de Cannabis Sativa L - Solución oral gotas (10%)"},
-                    {"nombre": "Xatiplex - Prospecto", "archivo": "Xatiplex_Prospecto.pdf", "descripcion": "CBD purificado - Solución oral jeringa"}
+                    {"nombre": "Xpectra - Prospecto", "archivo": "Xpectra.pdf", "descripcion": "Extracto de Cannabis Sativa L - Solución oral gotas (10%)"},
+                    {"nombre": "Xatiplex - Prospecto", "archivo": "Xatiplex.pdf", "descripcion": "CBD purificado - Solución oral jeringa"}
                 ]
             ),
             "Complejo de Esclerosis Tuberosa (CET)": Patologia(
@@ -136,8 +136,8 @@ class CatalogoPatologias:
                     "Evidencia: Alta - Ensayos clínicos"
                 ],
                 prospectos=[
-                    {"nombre": "Xpectra 10 - Prospecto", "archivo": "Xpectra-10_Prospecto_V.02.pdf", "descripcion": "Extracto de Cannabis Sativa L - Solución oral gotas (10%)"},
-                    {"nombre": "Xatiplex - Prospecto", "archivo": "Xatiplex_Prospecto.pdf", "descripcion": "CBD purificado - Solución oral jeringa"}
+                    {"nombre": "Xpectra - Prospecto", "archivo": "Xpectra.pdf", "descripcion": "Extracto de Cannabis Sativa L - Solución oral gotas (10%)"},
+                    {"nombre": "Xatiplex - Prospecto", "archivo": "Xatiplex.pdf", "descripcion": "CBD purificado - Solución oral jeringa"}
                 ]
             ),
             
@@ -170,8 +170,8 @@ class CatalogoPatologias:
                     "Evidencia: Moderada - Guía TGA Australia (2024) y estudios controlados muestran beneficio modesto"
                 ],
                 prospectos=[
-                    {"nombre": "Xpectra 10 - Prospecto", "archivo": "Xpectra-10_Prospecto_V.02.pdf", "descripcion": "Extracto de Cannabis Sativa L - Solución oral gotas (10%)"},
-                    {"nombre": "Xatiplex - Prospecto", "archivo": "Xatiplex_Prospecto.pdf", "descripcion": "CBD purificado - Solución oral jeringa"}
+                    {"nombre": "Xpectra - Prospecto", "archivo": "Xpectra.pdf", "descripcion": "Extracto de Cannabis Sativa L - Solución oral gotas (10%)"},
+                    {"nombre": "Xatiplex - Prospecto", "archivo": "Xatiplex.pdf", "descripcion": "CBD purificado - Solución oral jeringa"}
                 ]
             ),
         }
@@ -207,7 +207,6 @@ if __name__ == "__main__":
         print(f"   Tipo: {p.tipo_producto}")
         print(f"   Dosis inicial: {p.dosis_inicial} mg/kg/día")
         print(f"   Dosis máxima: {p.dosis_max} mg/kg/día")
-        print(f"   Opciones: {p.dosis_opciones}")
         print(f"   Prospectos: {len(p.prospectos) if p.prospectos else 0}")
         for linea in p.info_prospecto:
             print(f"   • {linea}")
