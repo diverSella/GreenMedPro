@@ -419,11 +419,8 @@ with st.sidebar:
             st.markdown('</div>', unsafe_allow_html=True)
             
             if st.button("Aplicar Producto/Dosis Recomendados", use_container_width=True, key="btn_aplicar_dosis"):
-                # Guardar la dosis recomendada en mg/kg
-                st.session_state.dosis_recomendada_valor = patologia.dosis_inicial
-                # Calcular la dosis en mg (dosis_inicial * peso)
-                dosis_en_mg = patologia.dosis_inicial * peso
-                st.session_state.dosis_personalizada = dosis_en_mg
+                # Guardar la dosis recomendada en mg/kg (sin multiplicar por peso)
+                st.session_state.dosis_personalizada = patologia.dosis_inicial
                 st.session_state.producto_seleccionado = patologia.producto_recomendado
                 st.session_state.dosis_aplicada = True
                 st.session_state.selector_key += 1
@@ -584,17 +581,12 @@ with tab1:
         st.markdown('<div class="input-dosis-container">', unsafe_allow_html=True)
         st.markdown("**Ingrese la dosis (mg/kg/día):**")
         
-        # Calcular la dosis en mg (mg/kg * peso) para mostrar en el campo
-        if st.session_state.dosis_aplicada and st.session_state.dosis_recomendada:
-            dosis_calculada = st.session_state.dosis_recomendada * peso
-        else:
-            dosis_calculada = st.session_state.dosis_personalizada
-        
+        # Mostrar la dosis recomendada en mg/kg (sin multiplicar)
         dosis_por_kg = st.number_input(
             "Dosis (mg/kg/día)",
             min_value=0.01,
             max_value=30.0,
-            value=float(dosis_calculada),
+            value=st.session_state.dosis_personalizada,
             step=0.01,
             key="input_dosis_personalizada",
             label_visibility="collapsed",
