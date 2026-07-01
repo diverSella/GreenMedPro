@@ -929,7 +929,7 @@ with tab3:
                 nombre_archivo_html = f"receta_{nombre_limpio}_{fecha_actual}.html"
                 
                 st.download_button(
-                    label="Descargar HTML",
+                    label="📄 Descargar HTML",
                     data=st.session_state.receta_html,
                     file_name=nombre_archivo_html,
                     mime="text/html",
@@ -943,7 +943,7 @@ with tab3:
                     nombre_archivo_pdf = f"receta_{nombre_limpio}_{fecha_actual}.pdf"
                     
                     st.download_button(
-                        label="Descargar PDF",
+                        label="📥 Descargar PDF",
                         data=pdf_bytes,
                         file_name=nombre_archivo_pdf,
                         mime="application/pdf",
@@ -953,9 +953,9 @@ with tab3:
                     )
                 except Exception as e:
                     st.error(f"Error al generar PDF: {e}")
-                    st.info("Asegúrate de tener instalado weasyprint")
+                    st.info("💡 Asegúrate de tener instalado weasyprint")
     else:
-        st.warning("Primero complete los datos del paciente y seleccione un producto.")
+        st.warning("⚠️ Primero complete los datos del paciente y seleccione un producto.")
 
 # ============================================
 # FOOTER
