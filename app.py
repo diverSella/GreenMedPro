@@ -205,6 +205,20 @@ st.markdown("""
     .referencia-item:last-child {
         border-bottom: none;
     }
+    .prospecto-link {
+        display: inline-block;
+        padding: 4px 12px;
+        background-color: #e3f2fd;
+        color: #0D47A1;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        text-decoration: none;
+        margin: 2px 0;
+        border: 1px solid #90caf9;
+    }
+    .prospecto-link:hover {
+        background-color: #bbdefb;
+    }
     .recomendacion-box {
         background-color: #e3f2fd;
         padding: 12px 15px;
@@ -256,43 +270,40 @@ st.markdown("""
         font-size: 1.2rem;
         font-weight: bold;
     }
-    .prospecto-card {
-        background-color: #f5f5f5;
-        padding: 15px;
-        border-radius: 8px;
-        border: 1px solid #e0e0e0;
-        margin: 10px 0;
-        display: flex;
-        align-items: center;
-        gap: 15px;
-    }
-    .prospecto-card .icon {
-        font-size: 2rem;
-    }
-    .prospecto-card .info {
-        flex: 1;
-    }
-    .prospecto-card .info .titulo {
-        font-weight: bold;
-        font-size: 1rem;
-    }
-    .prospecto-card .info .descripcion {
-        font-size: 0.85rem;
-        color: #666;
-    }
 </style>
 """, unsafe_allow_html=True)
 
 # ============================================
-# FUNCIÓN PARA OBTENER ARCHIVO EN BASE64
+# FUNCIÓN PARA GENERAR ENLACE DE DESCARGA DE PROSPECTO
 # ============================================
-def get_binary_file_downloader_html(bin_file, file_label='Archivo'):
-    """Genera HTML para descargar un archivo binario"""
-    with open(bin_file, 'rb') as f:
-        data = f.read()
-    b64 = base64.b64encode(data).decode()
-    href = f'<a href="data:application/octet-stream;base64,{b64}" download="{os.path.basename(bin_file)}" style="text-decoration: none; display: inline-block; padding: 8px 16px; background-color: #1976D2; color: white; border-radius: 5px; font-size: 0.85rem;">📄 Descargar {file_label}</a>'
-    return href
+def generar_enlace_prospecto(archivo, nombre, descripcion):
+    """Genera un enlace de descarga para un prospecto"""
+    ruta = f"prospectos/{archivo}"
+    if os.path.exists(ruta):
+        with open(ruta, "rb") as f:
+            pdf_bytes = f.read()
+        b64_pdf = base64.b64encode(pdf_bytes).decode()
+        return f"""
+        <div style="display: inline-block; margin: 2px 4px 2px 0;">
+            <a href="data:application/pdf;base64,{b64_pdf}" download="{archivo}" 
+               style="display: inline-block; padding: 4px 12px; 
+                      background-color: #e3f2fd; color: #0D47A1; 
+                      border-radius: 4px; font-size: 0.8rem; 
+                      text-decoration: none; border: 1px solid #90caf9;">
+                📄 {nombre}
+            </a>
+        </div>
+        """
+    return f"""
+    <div style="display: inline-block; margin: 2px 4px 2px 0;">
+        <span style="display: inline-block; padding: 4px 12px; 
+                     background-color: #f5f5f5; color: #999; 
+                     border-radius: 4px; font-size: 0.8rem; 
+                     border: 1px solid #ddd;">
+            {nombre} (no disponible)
+        </span>
+    </div>
+    """
 
 # ============================================
 # LOGO Y CABECERA
@@ -420,6 +431,7 @@ with st.sidebar:
             </div>
             """, unsafe_allow_html=True)
             
+            # Referencias
             if patologia.referencias:
                 st.markdown('<div style="margin-top: 4px;"><span class="label">Referencias:</span></div>', unsafe_allow_html=True)
                 for ref_id in patologia.referencias:
@@ -428,8 +440,17 @@ with st.sidebar:
                         st.markdown(f"""
                         <div class="referencia-item">
                             <span style="font-size: 0.8rem;">{ref.autores} ({ref.año}). <em>{ref.titulo}</em></span>
+                            {f' <a href="{ref.url}" target="_blank" style="font-size: 0.7rem; color: #1976D2;">🔗</a>' if ref.url else ''}
                         </div>
                         """, unsafe_allow_html=True)
+            
+            # Prospectos descargables (como enlaces)
+            if patologia.prospectos:
+                st.markdown('<div style="margin-top: 6px;"><span class="label">📄 Prospectos:</span></div>', unsafe_allow_html=True)
+                prospectos_html = ""
+                for p in patologia.prospectos:
+                    prospectos_html += generar_enlace_prospecto(p["archivo"], p["nombre"], p.get("descripcion", ""))
+                st.markdown(f'<div style="display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px;">{prospectos_html}</div>', unsafe_allow_html=True)
             
             st.markdown('</div>', unsafe_allow_html=True)
             
@@ -592,59 +613,9 @@ def redondear_gotas(gotas):
     return round(gotas)
 
 # ============================================
-# FUNCIÓN PARA MOSTRAR PROSPECTOS
-# ============================================
-def mostrar_prospectos():
-    """Muestra los prospectos descargables de Xpectra y Xatiplex"""
-    st.subheader("📄 Prospectos descargables")
-    st.markdown("Documentos de referencia para la prescripción de productos GreenMed.")
-    
-    # Prospecto Xpectra
-    xpectra_prospecto = "assets/prospectos/Xpectra-10_Prospecto_V.02.pdf"
-    if os.path.exists(xpectra_prospecto):
-        with open(xpectra_prospecto, "rb") as f:
-            pdf_bytes = f.read()
-        b64_pdf = base64.b64encode(pdf_bytes).decode()
-        
-        st.markdown(f"""
-        <div class="prospecto-card">
-            <div class="icon">📋</div>
-            <div class="info">
-                <div class="titulo">Xpectra 10 - Prospecto</div>
-                <div class="descripcion">Extracto de Cannabis Sativa L - Solución oral gotas (10%)</div>
-            </div>
-            <a href="data:application/pdf;base64,{b64_pdf}" download="Xpectra-10_Prospecto.pdf" style="text-decoration: none; display: inline-block; padding: 8px 16px; background-color: #1976D2; color: white; border-radius: 5px; font-size: 0.85rem;">
-                📥 Descargar PDF
-            </a>
-        </div>
-        """, unsafe_allow_html=True)
-    
-    # Prospecto Xatiplex
-    xatiplex_prospecto = "assets/prospectos/Xatiplex_Prospecto.pdf"
-    if os.path.exists(xatiplex_prospecto):
-        with open(xatiplex_prospecto, "rb") as f:
-            pdf_bytes = f.read()
-        b64_pdf = base64.b64encode(pdf_bytes).decode()
-        
-        st.markdown(f"""
-        <div class="prospecto-card">
-            <div class="icon">📋</div>
-            <div class="info">
-                <div class="titulo">Xatiplex - Prospecto</div>
-                <div class="descripcion">CBD purificado - Solución oral jeringa</div>
-            </div>
-            <a href="data:application/pdf;base64,{b64_pdf}" download="Xatiplex_Prospecto.pdf" style="text-decoration: none; display: inline-block; padding: 8px 16px; background-color: #1976D2; color: white; border-radius: 5px; font-size: 0.85rem;">
-                📥 Descargar PDF
-            </a>
-        </div>
-        """, unsafe_allow_html=True)
-    else:
-        st.info("El prospecto de Xatiplex no está disponible aún. Se agregará próximamente.")
-
-# ============================================
 # TABS
 # ============================================
-tab1, tab2, tab3, tab4 = st.tabs(["Calculadora", "Equivalencias", "Receta", "Prospectos"])
+tab1, tab2, tab3 = st.tabs(["Calculadora", "Equivalencias", "Receta"])
 
 # ============================================
 # TAB 1 - CALCULADORA
@@ -1101,18 +1072,6 @@ with tab3:
                     st.info("💡 Asegúrate de tener instalado weasyprint")
     else:
         st.warning("⚠️ Primero complete los datos del paciente y seleccione un producto.")
-
-# ============================================
-# TAB 4 - PROSPECTOS
-# ============================================
-with tab4:
-    st.header("📄 Prospectos y Documentación")
-    st.markdown("""
-    En esta sección encontrará los prospectos oficiales de los productos GreenMed
-    para su consulta y descarga.
-    """)
-    
-    mostrar_prospectos()
 
 # ============================================
 # FOOTER

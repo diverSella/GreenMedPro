@@ -23,10 +23,10 @@ class TipoIndicacion(Enum):
 class Patologia:
     nombre: str
     tipo: TipoIndicacion
-    dosis_min: float          # mg/kg/día
-    dosis_max: float          # mg/kg/día
-    dosis_inicial: float      # mg/kg/día
-    dosis_mantenimiento: float # mg/kg/día
+    dosis_min: float
+    dosis_max: float
+    dosis_inicial: float
+    dosis_mantenimiento: float
     evidencia: TipoEvidencia
     descripcion: str
     referencias: List[str]
@@ -39,8 +39,9 @@ class Patologia:
     bibliografia: str = ""
     nivel_estrellas: str = ""
     info_prospecto: List[str] = None
-    dosis_opciones: List[float] = None  # Opciones de dosis para mostrar en recuadros
+    dosis_opciones: List[float] = None
     peso_referencia: float = 70.0
+    prospectos: List[Dict] = None  # Lista de prospectos descargables
 
 class CatalogoPatologias:
     
@@ -73,6 +74,10 @@ class CatalogoPatologias:
                     "Titulación: Incrementos semanales de 2.5 mg/kg/día",
                     "Dosis máxima: 20.0 mg/kg/día",
                     "Evidencia: Alta - Múltiples ensayos clínicos"
+                ],
+                prospectos=[
+                    {"nombre": "Xpectra 10 - Prospecto", "archivo": "Xpectra-10_Prospecto_V.02.pdf", "descripcion": "Extracto de Cannabis Sativa L - Solución oral gotas (10%)"},
+                    {"nombre": "Xatiplex - Prospecto", "archivo": "Xatiplex_Prospecto.pdf", "descripcion": "CBD purificado - Solución oral jeringa"}
                 ]
             ),
             "Síndrome de Dravet (SD)": Patologia(
@@ -99,6 +104,10 @@ class CatalogoPatologias:
                     "Titulación: Incrementos semanales de 2.5 mg/kg/día",
                     "Dosis máxima: 20.0 mg/kg/día",
                     "Evidencia: Alta - Múltiples ensayos clínicos"
+                ],
+                prospectos=[
+                    {"nombre": "Xpectra 10 - Prospecto", "archivo": "Xpectra-10_Prospecto_V.02.pdf", "descripcion": "Extracto de Cannabis Sativa L - Solución oral gotas (10%)"},
+                    {"nombre": "Xatiplex - Prospecto", "archivo": "Xatiplex_Prospecto.pdf", "descripcion": "CBD purificado - Solución oral jeringa"}
                 ]
             ),
             "Complejo de Esclerosis Tuberosa (CET)": Patologia(
@@ -125,6 +134,10 @@ class CatalogoPatologias:
                     "Titulación: Incrementos semanales según tolerancia",
                     "Dosis máxima: 25.0 mg/kg/día",
                     "Evidencia: Alta - Ensayos clínicos"
+                ],
+                prospectos=[
+                    {"nombre": "Xpectra 10 - Prospecto", "archivo": "Xpectra-10_Prospecto_V.02.pdf", "descripcion": "Extracto de Cannabis Sativa L - Solución oral gotas (10%)"},
+                    {"nombre": "Xatiplex - Prospecto", "archivo": "Xatiplex_Prospecto.pdf", "descripcion": "CBD purificado - Solución oral jeringa"}
                 ]
             ),
             
@@ -140,21 +153,25 @@ class CatalogoPatologias:
                 dosis_mantenimiento=0.57,
                 evidencia=TipoEvidencia.MODERADA,
                 descripcion="Dolor de origen neuropático.",
-                referencias=["Hauser2024", "Busse2021", "TGA2022"],
-                resumen="La evidencia clínica favorece formulaciones con THC + CBD como tratamiento adyuvante del dolor neuropático.",
+                referencias=["TGA2022", "Hauser2024", "Busse2021", "Serpell2021"],
+                resumen="La evidencia clínica favorece formulaciones con THC + CBD como tratamiento adyuvante del dolor neuropático. El CBD aislado no ha demostrado una eficacia consistente frente a placebo.",
                 producto_recomendado="Xpectra 10",
                 tipo_producto="Extracto de Espectro Completo",
                 dosis_inicial_texto="0.14 mg/kg/día",
                 dosis_max_texto="2.8 mg/kg/día",
-                comentarios="El CBD aislado no ha demostrado eficacia consistente para dolor neuropático. Se recomienda espectro completo con THC.",
-                bibliografia="Häuser W. Eur J Pain (2024); Busse JW et al. BMJ (2021); TGA (2022).",
+                comentarios="El CBD aislado no ha demostrado eficacia consistente para dolor neuropático. Se recomienda espectro completo con THC. La TGA recomienda iniciar con dosis bajas y titular según respuesta.",
+                bibliografia="TGA Australia (2024); Häuser W. Eur J Pain (2024); Busse JW et al. BMJ (2021); Serpell M, et al. Pain (2021).",
                 nivel_estrellas="⭐⭐⭐",
                 dosis_opciones=[0.10, 0.14, 0.20, 0.50, 1.0, 1.5, 2.0, 2.5],
                 info_prospecto=[
-                    "Dosis inicial: 0.14 mg/kg/día",
+                    "Dosis inicial: 0.14 mg/kg/día (≈10 mg/día en 70 kg)",
                     "Titulación: Aumentar gradualmente según tolerancia y respuesta",
-                    "Dosis máxima: 2.8 mg/kg/día",
-                    "Evidencia: Moderada - Estudios controlados muestran beneficio"
+                    "Dosis máxima: 2.8 mg/kg/día (≈200 mg/día en 70 kg)",
+                    "Evidencia: Moderada - Guía TGA Australia (2024) y estudios controlados muestran beneficio modesto"
+                ],
+                prospectos=[
+                    {"nombre": "Xpectra 10 - Prospecto", "archivo": "Xpectra-10_Prospecto_V.02.pdf", "descripcion": "Extracto de Cannabis Sativa L - Solución oral gotas (10%)"},
+                    {"nombre": "Xatiplex - Prospecto", "archivo": "Xatiplex_Prospecto.pdf", "descripcion": "CBD purificado - Solución oral jeringa"}
                 ]
             ),
         }
@@ -191,6 +208,7 @@ if __name__ == "__main__":
         print(f"   Dosis inicial: {p.dosis_inicial} mg/kg/día")
         print(f"   Dosis máxima: {p.dosis_max} mg/kg/día")
         print(f"   Opciones: {p.dosis_opciones}")
+        print(f"   Prospectos: {len(p.prospectos) if p.prospectos else 0}")
         for linea in p.info_prospecto:
             print(f"   • {linea}")
     
