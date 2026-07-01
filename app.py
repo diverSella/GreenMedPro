@@ -260,16 +260,36 @@ st.markdown("""
         color: white !important;
         font-weight: bold !important;
         border: none !important;
-        padding: 10px 20px !important;
+        padding: 12px 24px !important;
         border-radius: 8px !important;
-        font-size: 1rem !important;
+        font-size: 1.1rem !important;
         cursor: pointer !important;
         transition: all 0.3s !important;
         width: 100% !important;
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.3) !important;
+        box-shadow: 0 4px 6px rgba(255, 152, 0, 0.4) !important;
     }
     .btn-aplicar:hover {
         background-color: #F57C00 !important;
         transform: scale(1.02);
+        box-shadow: 0 6px 8px rgba(255, 152, 0, 0.5) !important;
+    }
+    .stButton > button {
+        background-color: #FF9800 !important;
+        color: white !important;
+        font-weight: bold !important;
+        font-size: 1.1rem !important;
+        padding: 12px 24px !important;
+        border-radius: 8px !important;
+        border: none !important;
+        width: 100% !important;
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.3) !important;
+        box-shadow: 0 4px 6px rgba(255, 152, 0, 0.4) !important;
+    }
+    .stButton > button:hover {
+        background-color: #F57C00 !important;
+        transform: scale(1.02);
+        box-shadow: 0 6px 8px rgba(255, 152, 0, 0.5) !important;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -436,26 +456,6 @@ with st.sidebar:
             st.markdown('</div>', unsafe_allow_html=True)
             
             # Botón Aplicar con estilo personalizado
-            st.markdown("""
-            <style>
-                div.stButton > button:has(#btn_aplicar_dosis) {
-                    background-color: #FF9800 !important;
-                    color: white !important;
-                    font-weight: bold !important;
-                    font-size: 1rem !important;
-                    padding: 10px 20px !important;
-                    border-radius: 8px !important;
-                    border: none !important;
-                    width: 100% !important;
-                    transition: all 0.3s !important;
-                }
-                div.stButton > button:has(#btn_aplicar_dosis):hover {
-                    background-color: #F57C00 !important;
-                    transform: scale(1.02);
-                }
-            </style>
-            """, unsafe_allow_html=True)
-            
             if st.button("📋 Aplicar Producto/Dosis Recomendados", use_container_width=True, key="btn_aplicar_dosis"):
                 # Guardar la dosis recomendada en mg/kg
                 st.session_state.dosis_personalizada = patologia.dosis_inicial
@@ -614,7 +614,7 @@ with tab1:
         st.markdown('<div class="input-dosis-container">', unsafe_allow_html=True)
         st.markdown("**Ingrese la dosis (mg/kg/día):**")
         
-        # Mostrar la dosis recomendada en mg/kg (sin multiplicar)
+        # Mostrar la dosis recomendada en mg/kg
         dosis_por_kg = st.number_input(
             "Dosis (mg/kg/día)",
             min_value=0.01,
@@ -625,7 +625,7 @@ with tab1:
             label_visibility="collapsed",
             format="%.2f"
         )
-        # Actualizar session_state con el valor actual (en mg)
+        # Actualizar session_state con el valor actual
         if dosis_por_kg != st.session_state.dosis_personalizada:
             st.session_state.dosis_personalizada = float(dosis_por_kg)
             # Si el usuario modifica manualmente, desactivar la dosis aplicada
@@ -795,8 +795,8 @@ with tab1:
         with col3:
             st.markdown(f"""
             <div style="text-align: center; padding: 8px 4px; background: #f8f9fa; border-radius: 6px; border: 1px solid #e9ecef;">
-                <div style="font-size: 0.8rem; color: #666; margin-bottom: 2px;">Nro de tomas</div>
-                <div style="font-size: 1.1rem; font-weight: 500; color: #2E7D32;">{tomas_por_dia} veces/día</div>
+                <div style="font-size: 0.8rem; color: #666; margin-bottom: 2px;">Nro de tomas diarias</div>
+                <div style="font-size: 1.1rem; font-weight: 500; color: #2E7D32;">{tomas_por_dia} veces</div>
             </div>
             """, unsafe_allow_html=True)
         with col4:
