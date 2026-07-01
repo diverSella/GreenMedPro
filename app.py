@@ -10,6 +10,7 @@ from datetime import datetime
 import os
 import math
 import re
+import base64
 
 from productos import CatalogoProductos
 from calculos import CalculadoraCBD, validar_dosis
@@ -255,8 +256,43 @@ st.markdown("""
         font-size: 1.2rem;
         font-weight: bold;
     }
+    .prospecto-card {
+        background-color: #f5f5f5;
+        padding: 15px;
+        border-radius: 8px;
+        border: 1px solid #e0e0e0;
+        margin: 10px 0;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+    .prospecto-card .icon {
+        font-size: 2rem;
+    }
+    .prospecto-card .info {
+        flex: 1;
+    }
+    .prospecto-card .info .titulo {
+        font-weight: bold;
+        font-size: 1rem;
+    }
+    .prospecto-card .info .descripcion {
+        font-size: 0.85rem;
+        color: #666;
+    }
 </style>
 """, unsafe_allow_html=True)
+
+# ============================================
+# FUNCIÓN PARA OBTENER ARCHIVO EN BASE64
+# ============================================
+def get_binary_file_downloader_html(bin_file, file_label='Archivo'):
+    """Genera HTML para descargar un archivo binario"""
+    with open(bin_file, 'rb') as f:
+        data = f.read()
+    b64 = base64.b64encode(data).decode()
+    href = f'<a href="data:application/octet-stream;base64,{b64}" download="{os.path.basename(bin_file)}" style="text-decoration: none; display: inline-block; padding: 8px 16px; background-color: #1976D2; color: white; border-radius: 5px; font-size: 0.85rem;">📄 Descargar {file_label}</a>'
+    return href
 
 # ============================================
 # LOGO Y CABECERA
@@ -556,9 +592,59 @@ def redondear_gotas(gotas):
     return round(gotas)
 
 # ============================================
+# FUNCIÓN PARA MOSTRAR PROSPECTOS
+# ============================================
+def mostrar_prospectos():
+    """Muestra los prospectos descargables de Xpectra y Xatiplex"""
+    st.subheader("📄 Prospectos descargables")
+    st.markdown("Documentos de referencia para la prescripción de productos GreenMed.")
+    
+    # Prospecto Xpectra
+    xpectra_prospecto = "assets/prospectos/Xpectra-10_Prospecto_V.02.pdf"
+    if os.path.exists(xpectra_prospecto):
+        with open(xpectra_prospecto, "rb") as f:
+            pdf_bytes = f.read()
+        b64_pdf = base64.b64encode(pdf_bytes).decode()
+        
+        st.markdown(f"""
+        <div class="prospecto-card">
+            <div class="icon">📋</div>
+            <div class="info">
+                <div class="titulo">Xpectra 10 - Prospecto</div>
+                <div class="descripcion">Extracto de Cannabis Sativa L - Solución oral gotas (10%)</div>
+            </div>
+            <a href="data:application/pdf;base64,{b64_pdf}" download="Xpectra-10_Prospecto.pdf" style="text-decoration: none; display: inline-block; padding: 8px 16px; background-color: #1976D2; color: white; border-radius: 5px; font-size: 0.85rem;">
+                📥 Descargar PDF
+            </a>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    # Prospecto Xatiplex
+    xatiplex_prospecto = "assets/prospectos/Xatiplex_Prospecto.pdf"
+    if os.path.exists(xatiplex_prospecto):
+        with open(xatiplex_prospecto, "rb") as f:
+            pdf_bytes = f.read()
+        b64_pdf = base64.b64encode(pdf_bytes).decode()
+        
+        st.markdown(f"""
+        <div class="prospecto-card">
+            <div class="icon">📋</div>
+            <div class="info">
+                <div class="titulo">Xatiplex - Prospecto</div>
+                <div class="descripcion">CBD purificado - Solución oral jeringa</div>
+            </div>
+            <a href="data:application/pdf;base64,{b64_pdf}" download="Xatiplex_Prospecto.pdf" style="text-decoration: none; display: inline-block; padding: 8px 16px; background-color: #1976D2; color: white; border-radius: 5px; font-size: 0.85rem;">
+                📥 Descargar PDF
+            </a>
+        </div>
+        """, unsafe_allow_html=True)
+    else:
+        st.info("El prospecto de Xatiplex no está disponible aún. Se agregará próximamente.")
+
+# ============================================
 # TABS
 # ============================================
-tab1, tab2, tab3 = st.tabs(["Calculadora", "Equivalencias", "Receta"])
+tab1, tab2, tab3, tab4 = st.tabs(["Calculadora", "Equivalencias", "Receta", "Prospectos"])
 
 # ============================================
 # TAB 1 - CALCULADORA
@@ -1015,6 +1101,18 @@ with tab3:
                     st.info("💡 Asegúrate de tener instalado weasyprint")
     else:
         st.warning("⚠️ Primero complete los datos del paciente y seleccione un producto.")
+
+# ============================================
+# TAB 4 - PROSPECTOS
+# ============================================
+with tab4:
+    st.header("📄 Prospectos y Documentación")
+    st.markdown("""
+    En esta sección encontrará los prospectos oficiales de los productos GreenMed
+    para su consulta y descarga.
+    """)
+    
+    mostrar_prospectos()
 
 # ============================================
 # FOOTER
