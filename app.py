@@ -276,24 +276,36 @@ st.markdown("""
 # ============================================
 # FUNCIÓN PARA GENERAR ENLACE DE DESCARGA DE PROSPECTO
 # ============================================
-def generar_enlace_prospecto(archivo, nombre, descripcion):
+def generar_enlace_prospecto(archivo, nombre, descripcion=""):
     """Genera un enlace de descarga para un prospecto"""
     ruta = f"prospectos/{archivo}"
     if os.path.exists(ruta):
-        with open(ruta, "rb") as f:
-            pdf_bytes = f.read()
-        b64_pdf = base64.b64encode(pdf_bytes).decode()
-        return f"""
-        <div style="display: inline-block; margin: 2px 4px 2px 0;">
-            <a href="data:application/pdf;base64,{b64_pdf}" download="{archivo}" 
-               style="display: inline-block; padding: 4px 12px; 
-                      background-color: #e3f2fd; color: #0D47A1; 
-                      border-radius: 4px; font-size: 0.8rem; 
-                      text-decoration: none; border: 1px solid #90caf9;">
-                📄 {nombre}
-            </a>
-        </div>
-        """
+        try:
+            with open(ruta, "rb") as f:
+                pdf_bytes = f.read()
+            b64_pdf = base64.b64encode(pdf_bytes).decode()
+            return f"""
+            <div style="display: inline-block; margin: 2px 4px 2px 0;">
+                <a href="data:application/pdf;base64,{b64_pdf}" download="{archivo}" 
+                   style="display: inline-block; padding: 4px 12px; 
+                          background-color: #e3f2fd; color: #0D47A1; 
+                          border-radius: 4px; font-size: 0.8rem; 
+                          text-decoration: none; border: 1px solid #90caf9;">
+                    📄 {nombre}
+                </a>
+            </div>
+            """
+        except Exception as e:
+            return f"""
+            <div style="display: inline-block; margin: 2px 4px 2px 0;">
+                <span style="display: inline-block; padding: 4px 12px; 
+                             background-color: #f5f5f5; color: #999; 
+                             border-radius: 4px; font-size: 0.8rem; 
+                             border: 1px solid #ddd;">
+                    {nombre} (error al cargar)
+                </span>
+            </div>
+            """
     return f"""
     <div style="display: inline-block; margin: 2px 4px 2px 0;">
         <span style="display: inline-block; padding: 4px 12px; 
@@ -444,8 +456,8 @@ with st.sidebar:
                         </div>
                         """, unsafe_allow_html=True)
             
-            # Prospectos descargables (como enlaces)
-            if patologia.prospectos:
+            # Prospectos descargables - verificar que existe el atributo
+            if hasattr(patologia, 'prospectos') and patologia.prospectos:
                 st.markdown('<div style="margin-top: 6px;"><span class="label">📄 Prospectos:</span></div>', unsafe_allow_html=True)
                 prospectos_html = ""
                 for p in patologia.prospectos:
