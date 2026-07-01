@@ -1,26 +1,10 @@
 """
-Módulo para exportar recetas a PDF
+Módulo de exportación a PDF (versión simplificada para Streamlit Cloud)
 """
-
-from weasyprint import HTML
-from datetime import datetime
-import io
 
 def generar_pdf_bytes(html_content: str) -> bytes:
     """
-    Genera PDF en memoria (bytes) para descarga directa
-    
-    Args:
-        html_content: Contenido HTML de la receta
-    
-    Returns:
-        Bytes del archivo PDF
+    Función temporal para Streamlit Cloud sin weasyprint
     """
-    try:
-        pdf_bytes = HTML(string=html_content).write_pdf(
-            presentational_hints=True,
-            optimize_size=('fonts', 'images')
-        )
-        return pdf_bytes
-    except Exception as e:
-        raise Exception(f"Error generando PDF: {str(e)}")
+    # Devolvemos un mensaje en bytes
+    return b"PDF no disponible. Use la descarga HTML."
