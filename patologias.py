@@ -151,9 +151,9 @@ class CatalogoPatologias:
                 nivel_estrellas="⭐⭐⭐",
                 dosis_opciones=[0.10, 0.14, 0.20, 0.50, 1.0, 1.5, 2.0, 2.5],
                 info_prospecto=[
-                    "Dosis inicial: 0.14 mg/kg/día (≈10 mg/día en 70 kg)",
+                    "Dosis inicial: 0.14 mg/kg/día",
                     "Titulación: Aumentar gradualmente según tolerancia y respuesta",
-                    "Dosis máxima: 2.8 mg/kg/día (≈200 mg/día en 70 kg)",
+                    "Dosis máxima: 2.8 mg/kg/día",
                     "Evidencia: Moderada - Guía TGA Australia (2024) y estudios controlados muestran beneficio modesto"
                 ]
             ),
@@ -190,7 +190,6 @@ if __name__ == "__main__":
         print(f"   Tipo: {p.tipo_producto}")
         print(f"   Dosis inicial: {p.dosis_inicial} mg/kg/día")
         print(f"   Dosis máxima: {p.dosis_max} mg/kg/día")
-        print(f"   Referencias: {p.referencias}")
         for linea in p.info_prospecto:
             print(f"   • {linea}")
     

@@ -383,6 +383,7 @@ with st.sidebar:
             </div>
             """, unsafe_allow_html=True)
             
+            # Referencias
             if patologia.referencias:
                 st.markdown('<div style="margin-top: 4px;"><span class="label">Referencias:</span></div>', unsafe_allow_html=True)
                 for ref_id in patologia.referencias:
@@ -418,7 +419,9 @@ with st.sidebar:
             st.markdown('</div>', unsafe_allow_html=True)
             
             if st.button("Aplicar Producto/Dosis Recomendados", use_container_width=True, key="btn_aplicar_dosis"):
-                st.session_state.dosis_personalizada = patologia.dosis_inicial
+                # Calcular la dosis en mg (dosis_inicial * peso)
+                dosis_en_mg = patologia.dosis_inicial * peso
+                st.session_state.dosis_personalizada = dosis_en_mg
                 st.session_state.producto_seleccionado = patologia.producto_recomendado
                 st.session_state.dosis_aplicada = True
                 st.session_state.selector_key += 1
@@ -574,7 +577,7 @@ with tab1:
         
         # Badge de dosis recomendada aplicada
         if st.session_state.dosis_aplicada and dosis_recomendada:
-            st.markdown(f'<div class="badge-recomendado">⭐ Dosis recomendada aplicada: {dosis_recomendada:.2f} mg/kg/día</div>', unsafe_allow_html=True)
+            st.markdown(f'<div class="badge-recomendado">⭐ Dosis recomendada aplicada: {dosis_actual:.2f} mg/día</div>', unsafe_allow_html=True)
         
         st.markdown('<div class="input-dosis-container">', unsafe_allow_html=True)
         st.markdown("**Ingrese la dosis (mg/kg/día):**")
