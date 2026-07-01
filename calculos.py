@@ -91,7 +91,6 @@ class CalculadoraCBD:
             "maximo": self.DOSIS_MAXIMA
         }
 
-
 def validar_dosis(dosis_por_kg: float, peso_kg: float, dosis_min: float = 0.01, dosis_max: float = 30.0) -> Tuple[bool, str]:
     """
     Validar que la dosis esté dentro del rango terapéutico
@@ -99,8 +98,8 @@ def validar_dosis(dosis_por_kg: float, peso_kg: float, dosis_min: float = 0.01, 
     Args:
         dosis_por_kg: Dosis en mg/kg/día
         peso_kg: Peso del paciente
-        dosis_min: Dosis mínima para la patología específica (opcional)
-        dosis_max: Dosis máxima para la patología específica (opcional)
+        dosis_min: Dosis mínima para la patología específica
+        dosis_max: Dosis máxima para la patología específica
     """
     if peso_kg <= 0:
         return False, "El peso debe ser mayor a 0 kg"
