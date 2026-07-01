@@ -8,11 +8,10 @@ from productos import Producto
 class CalculadoraCBD:
     """Calculadora de dosis de CBD"""
     
-    # Rango terapéutico
-    DOSIS_MINIMA = 2.5  # mg/kg/día
-    DOSIS_MAXIMA = 20.0  # mg/kg/día
-    DOSIS_INICIAL = 2.5  # mg/kg/día
-    DOSIS_MANTENIMIENTO = 5.0  # mg/kg/día
+    DOSIS_MINIMA = 0.01  # Valor mínimo genérico
+    DOSIS_MAXIMA = 30.0  # Valor máximo genérico
+    DOSIS_INICIAL = 2.5
+    DOSIS_MANTENIMIENTO = 5.0
     
     def __init__(self, producto: Producto):
         self.producto = producto
@@ -20,11 +19,9 @@ class CalculadoraCBD:
         self.mg_por_gota = self._calcular_mg_por_gota() if producto.gotas_por_ml else None
     
     def _calcular_mg_por_ml(self) -> float:
-        """Calcular mg de CBD por ml según concentración"""
         return (self.producto.concentracion / 100) * 1000
     
     def _calcular_mg_por_gota(self) -> Optional[float]:
-        """Calcular mg de CBD por gota (solo para goteros)"""
         if self.producto.gotas_por_ml:
             return self.mg_por_ml / self.producto.gotas_por_ml
         return None
@@ -55,7 +52,7 @@ class CalculadoraCBD:
         }
         
         if gotas_por_toma is not None:
-            resultado["gotas_por_toma"] = round(gotas_por_toma, 1)
+            resultado["gotas_por_toma"] = gotas_por_toma  # Mantener valor exacto para redondear después
         
         return resultado
     
@@ -94,15 +91,25 @@ class CalculadoraCBD:
             "maximo": self.DOSIS_MAXIMA
         }
 
-def validar_dosis(dosis_por_kg: float, peso_kg: float) -> Tuple[bool, str]:
+
+def validar_dosis(dosis_por_kg: float, peso_kg: float, dosis_min: float = 0.01, dosis_max: float = 30.0) -> Tuple[bool, str]:
+    """
+    Validar que la dosis esté dentro del rango terapéutico
+    
+    Args:
+        dosis_por_kg: Dosis en mg/kg/día
+        peso_kg: Peso del paciente
+        dosis_min: Dosis mínima para la patología específica (opcional)
+        dosis_max: Dosis máxima para la patología específica (opcional)
+    """
     if peso_kg <= 0:
         return False, "El peso debe ser mayor a 0 kg"
     
-    if dosis_por_kg < CalculadoraCBD.DOSIS_MINIMA:
-        return False, f"La dosis es menor al mínimo recomendado ({CalculadoraCBD.DOSIS_MINIMA} mg/kg/día)"
+    if dosis_por_kg < dosis_min:
+        return False, f"La dosis es menor al mínimo recomendado ({dosis_min:.2f} mg/kg/día)"
     
-    if dosis_por_kg > CalculadoraCBD.DOSIS_MAXIMA:
-        return False, f"La dosis excede el máximo recomendado ({CalculadoraCBD.DOSIS_MAXIMA} mg/kg/día)"
+    if dosis_por_kg > dosis_max:
+        return False, f"La dosis excede el máximo recomendado ({dosis_max:.2f} mg/kg/día)"
     
     if dosis_por_kg < CalculadoraCBD.DOSIS_INICIAL:
         return True, "Dosis inicial baja. Considere titulación gradual."
