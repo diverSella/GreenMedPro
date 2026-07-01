@@ -9,18 +9,18 @@ import pandas as pd
 from datetime import datetime
 import os
 import math
+import re
 
-# Importar módulos
 from productos import CatalogoProductos
 from calculos import CalculadoraCBD, validar_dosis
 from patologias import CatalogoPatologias, TipoIndicacion, TipoEvidencia
 from referencias import CatalogoReferencias
 from comparativa import tabla_equivalencias
 from receta import generar_receta_html
-# from exportar_pdf import generar_pdf_bytes
+from exportar_pdf import generar_pdf_bytes
 
 # ============================================
-# CONFIGURACIÓN DE LA PÁGINA
+# CONFIGURACIÓN
 # ============================================
 st.set_page_config(
     page_title="GreenMed Pro - Calculadora CBD",
@@ -179,10 +179,6 @@ st.markdown("""
         color: #f44336;
         font-weight: bold;
     }
-    .evidencia-preliminar {
-        color: #9E9E9E;
-        font-weight: bold;
-    }
     .patologia-info {
         background-color: #f8f9fa;
         padding: 12px 15px;
@@ -207,6 +203,57 @@ st.markdown("""
     }
     .referencia-item:last-child {
         border-bottom: none;
+    }
+    .recomendacion-box {
+        background-color: #e3f2fd;
+        padding: 12px 15px;
+        border-radius: 8px;
+        border-left: 4px solid #1976D2;
+        margin: 10px 0;
+    }
+    .recomendacion-box .producto {
+        font-weight: bold;
+        color: #0D47A1;
+        font-size: 1.1rem;
+    }
+    .recomendacion-box .tipo-producto {
+        font-size: 0.85rem;
+        color: #555;
+        margin-top: 2px;
+    }
+    .estrellas {
+        color: #FFD700;
+        font-size: 1.2rem;
+    }
+    .info-prospecto {
+        font-size: 0.85rem;
+        color: #333;
+        line-height: 1.6;
+        margin: 4px 0;
+    }
+    .info-prospecto strong {
+        color: #0D47A1;
+    }
+    .input-dosis-container {
+        margin-top: 10px;
+    }
+    .input-dosis-container label {
+        font-size: 0.9rem;
+        color: #555;
+    }
+    .badge-recomendado {
+        background-color: #1976D2;
+        color: white;
+        padding: 2px 10px;
+        border-radius: 12px;
+        font-size: 0.7rem;
+        font-weight: bold;
+        display: inline-block;
+        margin-top: 8px;
+    }
+    .dosis-input {
+        font-size: 1.2rem;
+        font-weight: bold;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -248,7 +295,6 @@ catalogo_productos = CatalogoProductos()
 catalogo_patologias = CatalogoPatologias()
 catalogo_referencias = CatalogoReferencias()
 
-# Session state
 if 'dosis_personalizada' not in st.session_state:
     st.session_state.dosis_personalizada = 5.0
 if 'observaciones' not in st.session_state:
@@ -261,11 +307,19 @@ if 'volumen_envase' not in st.session_state:
     st.session_state.volumen_envase = 30
 if 'patologia_seleccionada' not in st.session_state:
     st.session_state.patologia_seleccionada = None
-if 'dosis_tipo' not in st.session_state:
-    st.session_state.dosis_tipo = "Dosis estándar"
+if 'producto_seleccionado' not in st.session_state:
+    st.session_state.producto_seleccionado = None
+if 'producto_recomendado' not in st.session_state:
+    st.session_state.producto_recomendado = None
+if 'dosis_recomendada' not in st.session_state:
+    st.session_state.dosis_recomendada = None
+if 'dosis_aplicada' not in st.session_state:
+    st.session_state.dosis_aplicada = False
+if 'selector_key' not in st.session_state:
+    st.session_state.selector_key = 0
 
 # ============================================
-# SIDEBAR - DATOS DEL PACIENTE
+# SIDEBAR
 # ============================================
 with st.sidebar:
     st.header("Datos del Paciente")
@@ -274,25 +328,10 @@ with st.sidebar:
     
     col_peso, col_edad = st.columns(2)
     with col_peso:
-        peso = st.number_input(
-            "Peso (kg)",
-            min_value=0.5,
-            max_value=300.0,
-            value=70.0,
-            step=0.5,
-            key="peso_paciente"
-        )
+        peso = st.number_input("Peso (kg)", min_value=0.5, max_value=300.0, value=70.0, step=0.5, key="peso_paciente")
     with col_edad:
-        edad = st.number_input(
-            "Edad (años)",
-            min_value=0,
-            max_value=120,
-            value=45,
-            step=1,
-            key="edad_paciente"
-        )
+        edad = st.number_input("Edad (años)", min_value=0, max_value=120, value=45, step=1, key="edad_paciente")
     
-    # Otros datos opcionales
     with st.expander("Datos adicionales (opcional)"):
         diagnostico = st.text_input("Diagnóstico", placeholder="Ej: Epilepsia refractaria", key="diagnostico_input")
         alergias = st.text_input("Alergias", placeholder="Ej: Ninguna conocida", key="alergias_input")
@@ -302,57 +341,35 @@ with st.sidebar:
     
     st.subheader("Selección de Patología")
     
-    # Obtener todas las patologías en el orden deseado (prospecto primero, luego evidencia)
-    on_label_list = catalogo_patologias.listar_on_label()
-    off_label_list = catalogo_patologias.listar_off_label()
+    patologias_ordenadas = [
+        "Síndrome de Lennox-Gastaut (SLG)",
+        "Síndrome de Dravet (SD)",
+        "Complejo de Esclerosis Tuberosa (CET)",
+        "Dolor neuropático crónico"
+    ]
     
-    # Crear lista combinada: prospecto primero, luego evidencia
-    patologias_ordenadas = []
-    if on_label_list:
-        patologias_ordenadas.extend(on_label_list)
-    if off_label_list:
-        patologias_ordenadas.extend(off_label_list)
-    
-    # Selector sin etiquetas on/off label
     patologia_seleccionada = st.selectbox(
         "Seleccione la patología",
         patologias_ordenadas,
-        help="Seleccione la patología para ver la dosis recomendada y referencias",
+        help="Seleccione la patología para ver la dosis recomendada",
         key="selector_patologia"
     )
     
-    # Obtener la patología si está seleccionada
     if patologia_seleccionada:
         st.session_state.patologia_seleccionada = patologia_seleccionada
         patologia = catalogo_patologias.get_patologia(patologia_seleccionada)
         
         if patologia:
-            # Mostrar información en un recuadro
+            st.session_state.producto_recomendado = patologia.producto_recomendado
+            st.session_state.dosis_recomendada = patologia.dosis_inicial
+            
             st.markdown('<div class="patologia-info">', unsafe_allow_html=True)
             
-            # Badge según tipo
             if patologia.tipo == TipoIndicacion.ON_LABEL:
                 st.markdown('<span class="badge-prospecto">Prospecto</span>', unsafe_allow_html=True)
             else:
                 st.markdown('<span class="badge-evidencia">Evidencia</span>', unsafe_allow_html=True)
             
-            # Información de dosis
-            st.markdown(f"""
-            <div style="margin-top: 8px;">
-                <span class="label">Dosis recomendada:</span>
-                <span class="value">{patologia.dosis_min}-{patologia.dosis_max} mg/kg/día</span>
-            </div>
-            <div>
-                <span class="label">Dosis inicial:</span>
-                <span class="value">{patologia.dosis_inicial} mg/kg/día</span>
-            </div>
-            <div>
-                <span class="label">Dosis mantenimiento:</span>
-                <span class="value">{patologia.dosis_mantenimiento} mg/kg/día</span>
-            </div>
-            """, unsafe_allow_html=True)
-            
-            # Evidencia
             evidencia_color = {
                 TipoEvidencia.ALTA: "evidencia-alta",
                 TipoEvidencia.MODERADA: "evidencia-moderada",
@@ -360,15 +377,15 @@ with st.sidebar:
                 TipoEvidencia.PRELIMINAR: "evidencia-preliminar"
             }
             st.markdown(f"""
-            <div>
+            <div style="margin-top: 6px;">
                 <span class="label">Nivel de evidencia:</span>
                 <span class="{evidencia_color.get(patologia.evidencia, '')}">{patologia.evidencia.value}</span>
+                <span class="estrellas">{patologia.nivel_estrellas}</span>
             </div>
             """, unsafe_allow_html=True)
             
-            # Referencias
             if patologia.referencias:
-                st.markdown('<div style="margin-top: 6px;"><span class="label">Referencias:</span></div>', unsafe_allow_html=True)
+                st.markdown('<div style="margin-top: 4px;"><span class="label">Referencias:</span></div>', unsafe_allow_html=True)
                 for ref_id in patologia.referencias:
                     ref = catalogo_referencias.get_referencia(ref_id)
                     if ref:
@@ -380,20 +397,57 @@ with st.sidebar:
             
             st.markdown('</div>', unsafe_allow_html=True)
             
-            # Botón para aplicar dosis sugerida
-            if st.button("Aplicar dosis sugerida", use_container_width=True, key="btn_aplicar_dosis"):
+            st.markdown("---")
+            
+            # Determinar el texto del tipo de producto
+            if "Xatiplex" in patologia.producto_recomendado:
+                tipo_texto = "en base a CBD purificado"
+            else:
+                tipo_texto = "en base a Extracto de Espectro Completo"
+            
+            st.markdown(f"""
+            <div class="recomendacion-box">
+                <div class="producto">Producto recomendado: {patologia.producto_recomendado}</div>
+                <div class="tipo-producto">🔬 {tipo_texto}</div>
+            """, unsafe_allow_html=True)
+            
+            if patologia.info_prospecto:
+                for linea in patologia.info_prospecto:
+                    st.markdown(f'<div class="info-prospecto">• {linea}</div>', unsafe_allow_html=True)
+            
+            st.markdown('</div>', unsafe_allow_html=True)
+            
+            if st.button("Aplicar Producto/Dosis Recomendados", use_container_width=True, key="btn_aplicar_dosis"):
                 st.session_state.dosis_personalizada = patologia.dosis_inicial
-                st.session_state.dosis_tipo = "Dosis personalizada"
+                st.session_state.producto_seleccionado = patologia.producto_recomendado
+                st.session_state.dosis_aplicada = True
+                st.session_state.selector_key += 1
                 st.rerun()
     
     st.divider()
     
-    st.subheader("Producto Greenmed")
+    # Selector de producto con título
+    st.subheader("Selección del Producto")
+    
+    producto_lista = catalogo_productos.listar_productos()
+    
+    # Determinar el índice del producto seleccionado
+    if st.session_state.producto_seleccionado and st.session_state.producto_seleccionado in producto_lista:
+        default_index = producto_lista.index(st.session_state.producto_seleccionado)
+    elif st.session_state.producto_recomendado and st.session_state.producto_recomendado in producto_lista:
+        default_index = producto_lista.index(st.session_state.producto_recomendado)
+    else:
+        default_index = 0
+    
+    # Usar un key dinámico para forzar la actualización del selectbox
     producto_nombre = st.selectbox(
         "Seleccione el producto",
-        catalogo_productos.listar_productos(),
-        key="selector_producto"
+        producto_lista,
+        index=default_index,
+        key=f"selector_producto_{st.session_state.selector_key}"
     )
+    
+    st.session_state.producto_seleccionado = producto_nombre
     
     producto = catalogo_productos.get_producto(producto_nombre)
     
@@ -429,7 +483,7 @@ with st.sidebar:
     )
 
 # ============================================
-# FUNCIÓN PARA MOSTRAR IMÁGENES
+# FUNCIÓN MOSTRAR IMAGEN
 # ============================================
 def mostrar_imagen_producto(producto_nombre, mg_por_ml, tiene_gotas, gotas_por_ml=None, mg_por_gota=None, volumen=None):
     imagen_map = {
@@ -495,7 +549,14 @@ def mostrar_imagen_producto(producto_nombre, mg_por_ml, tiene_gotas, gotas_por_m
     st.markdown('</div>', unsafe_allow_html=True)
 
 # ============================================
-# ÁREA PRINCIPAL - TABS
+# FUNCIÓN PARA REDONDEAR GOTAS
+# ============================================
+def redondear_gotas(gotas):
+    """Redondea las gotas al número entero más cercano"""
+    return round(gotas)
+
+# ============================================
+# TABS
 # ============================================
 tab1, tab2, tab3 = st.tabs(["Calculadora", "Equivalencias", "Receta"])
 
@@ -503,58 +564,35 @@ tab1, tab2, tab3 = st.tabs(["Calculadora", "Equivalencias", "Receta"])
 # TAB 1 - CALCULADORA
 # ============================================
 with tab1:
-    # Usar columnas con igual ancho
     col1, col2 = st.columns(2, gap="medium")
     
     with col1:
         st.header("Selección de Dosis")
         
-        # Usar el valor de session_state para el radio
-        dosis_tipo = st.radio(
-            "Tipo de dosis",
-            ["Dosis estándar", "Dosis personalizada"],
-            horizontal=True,
-            key="radio_dosis_tipo",
-            index=0 if st.session_state.dosis_tipo == "Dosis estándar" else 1
+        dosis_recomendada = st.session_state.dosis_recomendada
+        dosis_actual = st.session_state.dosis_personalizada
+        
+        # Badge de dosis recomendada aplicada
+        if st.session_state.dosis_aplicada and dosis_recomendada:
+            st.markdown(f'<div class="badge-recomendado">⭐ Dosis recomendada aplicada: {dosis_recomendada:.2f} mg/kg/día</div>', unsafe_allow_html=True)
+        
+        st.markdown('<div class="input-dosis-container">', unsafe_allow_html=True)
+        st.markdown("**Ingrese la dosis (mg/kg/día):**")
+        dosis_por_kg = st.number_input(
+            "Dosis (mg/kg/día)",
+            min_value=0.01,
+            max_value=30.0,
+            value=st.session_state.dosis_personalizada,
+            step=0.01,
+            key="input_dosis_personalizada",
+            label_visibility="collapsed",
+            format="%.2f"
         )
-        st.session_state.dosis_tipo = dosis_tipo
-        
-        if dosis_tipo == "Dosis estándar":
-            dosis_por_kg = st.select_slider(
-                "Dosis (mg/kg/día)",
-                options=[2.5, 5.0, 10.0, 15.0, 20.0],
-                value=5.0,
-                key="slider_dosis"
-            )
-            
-            st.info("""
-            **Rango terapéutico recomendado:**
-            - Dosis inicial: 2.5 mg/kg/día
-            - Dosis de mantenimiento: 5-10 mg/kg/día
-            - Dosis máxima: 20 mg/kg/día
-            """)
-        else:
-            st.markdown("**Dosis rápidas:**")
-            col_rapidas = st.columns(5)
-            
-            dosis_rapidas = [2.5, 5.0, 10.0, 15.0, 20.0]
-            for i, dosis in enumerate(dosis_rapidas):
-                with col_rapidas[i]:
-                    if st.button(f"{dosis} mg/kg", key=f"btn_dosis_{dosis}"):
-                        st.session_state.dosis_personalizada = float(dosis)
-                        st.rerun()
-            
-            dosis_por_kg = st.number_input(
-                "Dosis personalizada (mg/kg/día)",
-                min_value=0.5,
-                max_value=30.0,
-                value=st.session_state.dosis_personalizada,
-                step=0.5,
-                key="input_dosis_personalizada"
-            )
+        if dosis_por_kg != st.session_state.dosis_personalizada:
             st.session_state.dosis_personalizada = float(dosis_por_kg)
+            st.session_state.dosis_aplicada = False
+        st.markdown('</div>', unsafe_allow_html=True)
         
-        # Información de la patología seleccionada (versión resumida)
         if patologia_seleccionada:
             pat = catalogo_patologias.get_patologia(patologia_seleccionada)
             if pat:
@@ -566,7 +604,10 @@ with tab1:
                         {pat.descripcion}
                     </div>
                     <div style="font-size: 0.8rem; color: #666; margin-top: 4px;">
-                        <strong>Evidencia:</strong> {pat.evidencia.value}
+                        <strong>Evidencia:</strong> {pat.evidencia.value} {pat.nivel_estrellas}
+                    </div>
+                    <div style="font-size: 0.8rem; color: #666; margin-top: 2px;">
+                        <strong>Producto recomendado:</strong> {pat.producto_recomendado}
                     </div>
                 </div>
                 """, unsafe_allow_html=True)
@@ -590,29 +631,36 @@ with tab1:
                 st.session_state.volumen_envase
             )
     
-    # Calcular y mostrar resultados
     if peso > 0 and producto:
         st.divider()
         
-        es_valido, mensaje_validacion = validar_dosis(dosis_por_kg, peso)
+        # Validar dosis según la patología
+        dosis_min = 0.01  # Default
+        dosis_max = 30.0
+        if patologia_seleccionada:
+            pat = catalogo_patologias.get_patologia(patologia_seleccionada)
+            if pat:
+                dosis_min = pat.dosis_min
+                dosis_max = pat.dosis_max
+        
+        es_valido, mensaje_validacion = validar_dosis(dosis_por_kg, peso, dosis_min, dosis_max)
         
         if not es_valido:
-            st.error(f"{mensaje_validacion}")
+            st.error(f"⚠️ {mensaje_validacion}")
         else:
-            st.success(f"{mensaje_validacion}")
+            st.success(f"✅ {mensaje_validacion}")
         
         calculadora = CalculadoraCBD(producto)
         pauta = calculadora.calcular_pauta_completa(peso, dosis_por_kg)
         
         st.header("Pauta de Administración")
         
-        # ============================================
-        # RECUADRO VERDE
-        # ============================================
         tiene_gotas = "dosis_por_toma_gotas" in pauta
         
+        # Redondear gotas al entero más cercano
         if tiene_gotas:
-            mensaje_dosis = f"{pauta['dosis_por_toma_gotas']:.1f} gotas"
+            gotas_redondeadas = redondear_gotas(pauta['dosis_por_toma_gotas'])
+            mensaje_dosis = f"{gotas_redondeadas} gotas"
         else:
             mensaje_dosis = f"{pauta['dosis_por_toma_ml']:.1f} ml"
         
@@ -625,16 +673,18 @@ with tab1:
         else:
             frecuencia = f"{tomas_por_dia} veces al día"
         
-        # Badge de patología
         badge_html = ""
         if patologia_seleccionada:
             pat = catalogo_patologias.get_patologia(patologia_seleccionada)
             if pat:
                 if pat.tipo == TipoIndicacion.ON_LABEL:
-                    badge_html = '<span class="badge-prospecto" style="font-size: 0.8rem;">Prospecto</span>'
+                    badge_html = '<span class="badge-prospecto">Prospecto</span>'
                 else:
-                    badge_html = '<span class="badge-evidencia" style="font-size: 0.8rem;">Evidencia</span>'
+                    badge_html = '<span class="badge-evidencia">Evidencia</span>'
                 badge_html += f' <span style="font-size: 0.8rem; color: #666;">{patologia_seleccionada}</span>'
+        
+        if st.session_state.dosis_aplicada:
+            badge_html += ' <span style="background-color: #1976D2; color: white; padding: 2px 10px; border-radius: 12px; font-size: 0.7rem; font-weight: bold;">Dosis recomendada aplicada</span>'
         
         st.markdown(f"""
         <div class="highlight-product">
@@ -645,9 +695,6 @@ with tab1:
         </div>
         """, unsafe_allow_html=True)
         
-        # ============================================
-        # DETALLES DE LA DOSIS
-        # ============================================
         st.markdown('<p class="section-subtitle">Detalles de la Dosis</p>', unsafe_allow_html=True)
         
         col1, col2, col3, col4 = st.columns(4)
@@ -655,7 +702,7 @@ with tab1:
             st.markdown(f"""
             <div style="text-align: center; padding: 8px 4px; background: #f8f9fa; border-radius: 6px; border: 1px solid #e9ecef;">
                 <div style="font-size: 0.8rem; color: #666; margin-bottom: 2px;">Dosis por kg/día</div>
-                <div style="font-size: 1.1rem; font-weight: 500; color: #2E7D32;">{pauta['dosis_por_kg']:.1f} mg/kg/día</div>
+                <div style="font-size: 1.1rem; font-weight: 500; color: #2E7D32;">{pauta['dosis_por_kg']:.2f} mg/kg/día</div>
             </div>
             """, unsafe_allow_html=True)
         with col2:
@@ -680,9 +727,6 @@ with tab1:
             </div>
             """, unsafe_allow_html=True)
         
-        # ============================================
-        # DETALLES DE ADMINISTRACIÓN
-        # ============================================
         st.markdown('<p class="section-subtitle">Detalles de Administración</p>', unsafe_allow_html=True)
         
         volumen_envase = st.session_state.volumen_envase
@@ -701,10 +745,11 @@ with tab1:
             """, unsafe_allow_html=True)
         with col2:
             if tiene_gotas:
+                gotas_redondeadas = redondear_gotas(gotas_por_toma)
                 st.markdown(f"""
                 <div style="text-align: center; padding: 8px 4px; background: #f8f9fa; border-radius: 6px; border: 1px solid #e9ecef;">
                     <div style="font-size: 0.8rem; color: #666; margin-bottom: 2px;">Gotas por toma</div>
-                    <div style="font-size: 1.1rem; font-weight: 500; color: #2E7D32;">{gotas_por_toma:.1f} gotas/toma</div>
+                    <div style="font-size: 1.1rem; font-weight: 500; color: #2E7D32;">{gotas_redondeadas} gotas/toma</div>
                 </div>
                 """, unsafe_allow_html=True)
             else:
@@ -729,9 +774,6 @@ with tab1:
             </div>
             """, unsafe_allow_html=True)
         
-        # ============================================
-        # EQUIVALENCIAS
-        # ============================================
         st.divider()
         st.subheader("Equivalencias para esta dosis")
         st.markdown("Si el paciente no puede comprar el producto seleccionado, estas son las dosis equivalentes con otros productos:")
@@ -820,7 +862,7 @@ with tab2:
         st.markdown("""
         **Xpectra 10 (Gotero)**
         - 32 gotas = 1 ml
-        - Full Spectrum
+        - Extracto de Espectro Completo
         - Administración con gotero
         """)
     
@@ -828,7 +870,7 @@ with tab2:
         st.markdown("""
         **Xatiplex (Jeringa)**
         - Administración con jeringa
-        - Isolado de CBD
+        - CBD purificado
         - Mayor precisión en la dosis
         """)
 
@@ -916,7 +958,7 @@ with tab3:
         st.warning("Primero complete los datos del paciente y seleccione un producto.")
 
 # ============================================
-# FOOTER CON CRÉDITOS
+# FOOTER
 # ============================================
 st.markdown("""
 <div class="footer">
