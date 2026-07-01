@@ -36,7 +36,7 @@ class CatalogoReferencias:
                 volumen="376",
                 paginas="2011-2020",
                 doi="10.1056/NEJMoa1611618",
-                resumen="Estudio pivotal que demostró la eficacia del CBD en el síndrome de Dravet. Reducción del 39% en crisis convulsivas.",
+                resumen="Estudio pivotal que demostró la eficacia del CBD en el síndrome de Dravet.",
                 url="https://www.nejm.org/doi/full/10.1056/NEJMoa1611618"
             ),
             "GW2020": Referencia(
@@ -48,7 +48,7 @@ class CatalogoReferencias:
                 volumen="61",
                 paginas="234-243",
                 doi="10.1111/epi.16424",
-                resumen="Estudio que confirma la eficacia del CBD en el síndrome de Lennox-Gastaut. Reducción del 41% en crisis convulsivas.",
+                resumen="Estudio que confirma la eficacia del CBD en el síndrome de Lennox-Gastaut.",
                 url="https://onlinelibrary.wiley.com/doi/10.1111/epi.16424"
             ),
             
@@ -64,7 +64,7 @@ class CatalogoReferencias:
                 volumen="162",
                 paginas="2871-2883",
                 doi="10.1097/j.pain.0000000000002285",
-                resumen="Revisión sistemática que evalúa el CBD para dolor crónico. Mejoría modesta en EVA (1-2 puntos).",
+                resumen="Revisión sistemática sobre CBD para dolor crónico.",
                 url="https://journals.lww.com/pain/abstract/2021/12000/cannabidiol_for_the_treatment_of_chronic_pain__a.5.aspx"
             ),
             "Boychuk2022": Referencia(
@@ -76,7 +76,7 @@ class CatalogoReferencias:
                 volumen="25",
                 paginas="E61-E72",
                 doi="10.36076/ppj.2022.25.E61",
-                resumen="Revisión sobre CBD en fibromialgia. Mejoría en dolor y calidad de sueño.",
+                resumen="Revisión sobre CBD en fibromialgia.",
                 url="https://www.painphysicianjournal.com/current/pdf?article=NzE1MA%3D%3D&journal=115"
             ),
             "Crippa2021": Referencia(
@@ -88,7 +88,7 @@ class CatalogoReferencias:
                 volumen="12",
                 paginas="674398",
                 doi="10.3389/fpsyt.2021.674398",
-                resumen="Revisión sistemática sobre CBD en ansiedad. Efecto ansiolítico dosis-dependiente.",
+                resumen="Revisión sistemática sobre CBD en ansiedad.",
                 url="https://www.frontiersin.org/articles/10.3389/fpsyt.2021.674398/full"
             ),
             "Shannon2022": Referencia(
@@ -100,7 +100,7 @@ class CatalogoReferencias:
                 volumen="11",
                 paginas="358",
                 doi="10.3390/jcm11020358",
-                resumen="Serie de casos sobre CBD en insomnio y ansiedad. Mejoría en calidad de sueño.",
+                resumen="Serie de casos sobre CBD en insomnio y ansiedad.",
                 url="https://www.mdpi.com/2077-0383/11/2/358"
             ),
             "Rudroff2021": Referencia(
@@ -112,7 +112,7 @@ class CatalogoReferencias:
                 volumen="27",
                 paginas="525-536",
                 doi="10.1177/1352458520946012",
-                resumen="Revisión sobre CBD en esclerosis múltiple. Reducción de espasticidad.",
+                resumen="Revisión sobre CBD en esclerosis múltiple.",
                 url="https://journals.sagepub.com/doi/10.1177/1352458520946012"
             ),
             "Xu2020": Referencia(
@@ -124,7 +124,7 @@ class CatalogoReferencias:
                 volumen="21",
                 paginas="2523-2533",
                 doi="10.1093/pm/pnaa217",
-                resumen="Revisión sobre cannabinoides en dolor neuropático. El CBD modula TRPV1.",
+                resumen="Revisión sobre cannabinoides en dolor neuropático.",
                 url="https://academic.oup.com/painmedicine/article/21/10/2523/5875212"
             ),
             "Silva2021": Referencia(
@@ -136,8 +136,44 @@ class CatalogoReferencias:
                 volumen="43",
                 paginas="438-439",
                 doi="10.1590/1516-4446-2020-1454",
-                resumen="Serie de casos sobre CBD en fibromialgia. Mejoría en dolor y fatiga.",
+                resumen="Serie de casos sobre CBD en fibromialgia.",
                 url="https://www.scielo.br/j/rbp/a/3s5qZ7ZvGgMqmqYG2Yv8YPv/"
+            ),
+            "Hauser2024": Referencia(
+                id="Hauser2024",
+                autores="Häuser W, Fitzcharles MA, Radbruch L, et al.",
+                año="2024",
+                titulo="Cannabinoids for chronic pain: an updated systematic review",
+                revista="European Journal of Pain",
+                volumen="28",
+                paginas="1-15",
+                doi="10.1002/ejp.2180",
+                resumen="Revisión sistemática actualizada sobre cannabinoides para dolor crónico.",
+                url="https://onlinelibrary.wiley.com/doi/10.1002/ejp.2180"
+            ),
+            "Busse2021": Referencia(
+                id="Busse2021",
+                autores="Busse JW, Wang L, Kamaleldin M, et al.",
+                año="2021",
+                titulo="Medical cannabis or cannabinoids for chronic pain: a clinical practice guideline",
+                revista="BMJ",
+                volumen="374",
+                paginas="n2040",
+                doi="10.1136/bmj.n2040",
+                resumen="Guía de práctica clínica para el uso de cannabis medicinal en dolor crónico.",
+                url="https://www.bmj.com/content/374/bmj.n2040"
+            ),
+            "TGA2024": Referencia(
+                id="TGA2024",
+                autores="Therapeutic Goods Administration (TGA) Australia",
+                año="2024",
+                titulo="Guidance for the use of medicinal cannabis in the treatment of chronic non-cancer pain in Australia",
+                revista="TGA Australia",
+                volumen="Versión 1.1",
+                paginas="Noviembre 2024",
+                doi="",
+                resumen="Guía oficial de la TGA para el uso de cannabis medicinal en dolor crónico no oncológico en Australia. Documento de referencia clave para prescriptores.",
+                url="https://www.tga.gov.au/resources/explore-topic/medicinal-cannabis-hub/medicinal-cannabis-guidance-documents/guidance-use-medicinal-cannabis-treatment-chronic-non-cancer-pain-australia#s2"
             ),
         }
     
@@ -156,7 +192,7 @@ class CatalogoReferencias:
     
     def get_referencias_off_label(self) -> List[Referencia]:
         """Obtener referencias off-label"""
-        ids_off_label = ["Serpell2021", "Boychuk2022", "Crippa2021", "Shannon2022", "Rudroff2021", "Xu2020", "Silva2021"]
+        ids_off_label = ["Serpell2021", "Boychuk2022", "Crippa2021", "Shannon2022", "Rudroff2021", "Xu2020", "Silva2021", "Hauser2024", "Busse2021", "TGA2024"]
         return self.get_referencias_por_ids(ids_off_label)
     
     def formatear_referencia(self, ref: Referencia) -> str:

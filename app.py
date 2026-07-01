@@ -9,8 +9,6 @@ import pandas as pd
 from datetime import datetime
 import os
 import math
-import re
-import base64
 
 from productos import CatalogoProductos
 from calculos import CalculadoraCBD, validar_dosis
@@ -205,20 +203,6 @@ st.markdown("""
     .referencia-item:last-child {
         border-bottom: none;
     }
-    .prospecto-link {
-        display: inline-block;
-        padding: 4px 12px;
-        background-color: #e3f2fd;
-        color: #0D47A1;
-        border-radius: 4px;
-        font-size: 0.8rem;
-        text-decoration: none;
-        margin: 2px 0;
-        border: 1px solid #90caf9;
-    }
-    .prospecto-link:hover {
-        background-color: #bbdefb;
-    }
     .recomendacion-box {
         background-color: #e3f2fd;
         padding: 12px 15px;
@@ -272,50 +256,6 @@ st.markdown("""
     }
 </style>
 """, unsafe_allow_html=True)
-
-# ============================================
-# FUNCIÓN PARA GENERAR ENLACE DE DESCARGA DE PROSPECTO
-# ============================================
-def generar_enlace_prospecto(archivo, nombre, descripcion=""):
-    """Genera un enlace de descarga para un prospecto"""
-    ruta = f"prospectos/{archivo}"
-    if os.path.exists(ruta):
-        try:
-            with open(ruta, "rb") as f:
-                pdf_bytes = f.read()
-            b64_pdf = base64.b64encode(pdf_bytes).decode()
-            return f"""
-            <div style="display: inline-block; margin: 2px 4px 2px 0;">
-                <a href="data:application/pdf;base64,{b64_pdf}" download="{archivo}" 
-                   style="display: inline-block; padding: 4px 12px; 
-                          background-color: #e3f2fd; color: #0D47A1; 
-                          border-radius: 4px; font-size: 0.8rem; 
-                          text-decoration: none; border: 1px solid #90caf9;">
-                    📄 {nombre}
-                </a>
-            </div>
-            """
-        except Exception as e:
-            return f"""
-            <div style="display: inline-block; margin: 2px 4px 2px 0;">
-                <span style="display: inline-block; padding: 4px 12px; 
-                             background-color: #f5f5f5; color: #999; 
-                             border-radius: 4px; font-size: 0.8rem; 
-                             border: 1px solid #ddd;">
-                    {nombre} (error al cargar)
-                </span>
-            </div>
-            """
-    return f"""
-    <div style="display: inline-block; margin: 2px 4px 2px 0;">
-        <span style="display: inline-block; padding: 4px 12px; 
-                     background-color: #f5f5f5; color: #999; 
-                     border-radius: 4px; font-size: 0.8rem; 
-                     border: 1px solid #ddd;">
-            {nombre} (no disponible)
-        </span>
-    </div>
-    """
 
 # ============================================
 # LOGO Y CABECERA
@@ -443,7 +383,6 @@ with st.sidebar:
             </div>
             """, unsafe_allow_html=True)
             
-            # Referencias
             if patologia.referencias:
                 st.markdown('<div style="margin-top: 4px;"><span class="label">Referencias:</span></div>', unsafe_allow_html=True)
                 for ref_id in patologia.referencias:
@@ -455,14 +394,6 @@ with st.sidebar:
                             {f' <a href="{ref.url}" target="_blank" style="font-size: 0.7rem; color: #1976D2;">🔗</a>' if ref.url else ''}
                         </div>
                         """, unsafe_allow_html=True)
-            
-            # Prospectos descargables - verificar que existe el atributo
-            if hasattr(patologia, 'prospectos') and patologia.prospectos:
-                st.markdown('<div style="margin-top: 6px;"><span class="label">📄 Prospectos:</span></div>', unsafe_allow_html=True)
-                prospectos_html = ""
-                for p in patologia.prospectos:
-                    prospectos_html += generar_enlace_prospecto(p["archivo"], p["nombre"], p.get("descripcion", ""))
-                st.markdown(f'<div style="display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px;">{prospectos_html}</div>', unsafe_allow_html=True)
             
             st.markdown('</div>', unsafe_allow_html=True)
             
