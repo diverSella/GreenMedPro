@@ -254,6 +254,23 @@ st.markdown("""
         font-size: 1.2rem;
         font-weight: bold;
     }
+    /* Botón Aplicar Producto/Dosis Recomendados */
+    .btn-aplicar {
+        background-color: #FF9800 !important;
+        color: white !important;
+        font-weight: bold !important;
+        border: none !important;
+        padding: 10px 20px !important;
+        border-radius: 8px !important;
+        font-size: 1rem !important;
+        cursor: pointer !important;
+        transition: all 0.3s !important;
+        width: 100% !important;
+    }
+    .btn-aplicar:hover {
+        background-color: #F57C00 !important;
+        transform: scale(1.02);
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -418,8 +435,29 @@ with st.sidebar:
             
             st.markdown('</div>', unsafe_allow_html=True)
             
-            if st.button("Aplicar Producto/Dosis Recomendados", use_container_width=True, key="btn_aplicar_dosis"):
-                # Guardar la dosis recomendada en mg/kg (sin multiplicar por peso)
+            # Botón Aplicar con estilo personalizado
+            st.markdown("""
+            <style>
+                div.stButton > button:has(#btn_aplicar_dosis) {
+                    background-color: #FF9800 !important;
+                    color: white !important;
+                    font-weight: bold !important;
+                    font-size: 1rem !important;
+                    padding: 10px 20px !important;
+                    border-radius: 8px !important;
+                    border: none !important;
+                    width: 100% !important;
+                    transition: all 0.3s !important;
+                }
+                div.stButton > button:has(#btn_aplicar_dosis):hover {
+                    background-color: #F57C00 !important;
+                    transform: scale(1.02);
+                }
+            </style>
+            """, unsafe_allow_html=True)
+            
+            if st.button("📋 Aplicar Producto/Dosis Recomendados", use_container_width=True, key="btn_aplicar_dosis"):
+                # Guardar la dosis recomendada en mg/kg
                 st.session_state.dosis_personalizada = patologia.dosis_inicial
                 st.session_state.producto_seleccionado = patologia.producto_recomendado
                 st.session_state.dosis_aplicada = True
@@ -428,7 +466,7 @@ with st.sidebar:
     
     st.divider()
     
-    # Selector de producto con título
+    # Selector de producto sin métricas de concentración y presentación
     st.subheader("Selección del Producto")
     
     producto_lista = catalogo_productos.listar_productos()
@@ -454,12 +492,7 @@ with st.sidebar:
     producto = catalogo_productos.get_producto(producto_nombre)
     
     if producto:
-        col1, col2 = st.columns(2)
-        with col1:
-            st.metric("Concentración", f"{producto.concentracion}%")
-        with col2:
-            st.metric("Presentación", producto.presentacion)
-        
+        # Solo mostrar el volumen del envase
         if producto.volumenes_disponibles:
             st.subheader("Volumen del envase")
             volumen_envase = st.radio(
@@ -714,6 +747,12 @@ with tab1:
             else:
                 mensaje_dosis = f"{ml_por_toma_str} ml {tomas_por_dia} veces al día"
         
+        # Obtener el nombre del producto sin el porcentaje en la descripción
+        nombre_producto = pauta['producto']
+        # Quitar el "(10.0%)" del nombre y agregar "(CBD {concentracion}%)"
+        nombre_limpio = nombre_producto.split(' (')[0] if ' (' in nombre_producto else nombre_producto
+        concentracion = pauta['concentracion']
+        
         badge_html = ""
         if patologia_seleccionada:
             pat = catalogo_patologias.get_patologia(patologia_seleccionada)
@@ -729,7 +768,7 @@ with tab1:
         
         st.markdown(f"""
         <div class="highlight-product">
-            <p class="producto-nombre">{pauta['producto']} ({pauta['concentracion']}%)</p>
+            <p class="producto-nombre">{nombre_limpio} (CBD {concentracion}%)</p>
             <p class="producto-dosis">{mensaje_dosis}</p>
             <p class="producto-detalle">Presentación: {pauta['presentacion']} | Envase: {st.session_state.volumen_envase} mL</p>
             <p class="producto-detalle" style="margin-top: 8px;">{badge_html}</p>
