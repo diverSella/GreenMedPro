@@ -657,21 +657,30 @@ with tab1:
         
         tiene_gotas = "dosis_por_toma_gotas" in pauta
         
-        # Redondear gotas al entero más cercano
+        # Construir el mensaje de dosis con el número de tomas
         if tiene_gotas:
             gotas_redondeadas = redondear_gotas(pauta['dosis_por_toma_gotas'])
-            mensaje_dosis = f"{gotas_redondeadas} gotas"
+            # Ajustar mensaje según número de tomas
+            if tomas_por_dia == 1:
+                mensaje_dosis = f"{gotas_redondeadas} gota una vez al día"
+            elif tomas_por_dia == 2:
+                mensaje_dosis = f"{gotas_redondeadas} gotas dos veces al día (cada 12 horas)"
+            elif tomas_por_dia == 3:
+                mensaje_dosis = f"{gotas_redondeadas} gotas tres veces al día (cada 8 horas)"
+            else:
+                mensaje_dosis = f"{gotas_redondeadas} gotas {tomas_por_dia} veces al día"
         else:
-            mensaje_dosis = f"{pauta['dosis_por_toma_ml']:.1f} ml"
-        
-        if tomas_por_dia == 1:
-            frecuencia = "una vez al día"
-        elif tomas_por_dia == 2:
-            frecuencia = "dos veces al día (cada 12 horas)"
-        elif tomas_por_dia == 3:
-            frecuencia = "tres veces al día (cada 8 horas)"
-        else:
-            frecuencia = f"{tomas_por_dia} veces al día"
+            # Para Xatiplex (jeringa), mostrar el volumen por toma y la frecuencia
+            ml_por_toma = pauta['dosis_por_toma_ml']
+            ml_por_toma_str = f"{ml_por_toma:.1f}".replace('.', ',')
+            if tomas_por_dia == 1:
+                mensaje_dosis = f"{ml_por_toma_str} ml una vez al día"
+            elif tomas_por_dia == 2:
+                mensaje_dosis = f"{ml_por_toma_str} ml dos veces al día (cada 12 horas)"
+            elif tomas_por_dia == 3:
+                mensaje_dosis = f"{ml_por_toma_str} ml tres veces al día (cada 8 horas)"
+            else:
+                mensaje_dosis = f"{ml_por_toma_str} ml {tomas_por_dia} veces al día"
         
         badge_html = ""
         if patologia_seleccionada:
@@ -689,7 +698,7 @@ with tab1:
         st.markdown(f"""
         <div class="highlight-product">
             <p class="producto-nombre">{pauta['producto']} ({pauta['concentracion']}%)</p>
-            <p class="producto-dosis">{mensaje_dosis} {frecuencia}</p>
+            <p class="producto-dosis">{mensaje_dosis}</p>
             <p class="producto-detalle">Presentación: {pauta['presentacion']} | Envase: {st.session_state.volumen_envase} mL</p>
             <p class="producto-detalle" style="margin-top: 8px;">{badge_html}</p>
         </div>
@@ -731,8 +740,10 @@ with tab1:
         
         volumen_envase = st.session_state.volumen_envase
         ml_por_toma = pauta['dosis_por_toma_ml']
+        ml_por_dia = ml_por_toma * tomas_por_dia
         dosis_por_envase = math.floor(volumen_envase / ml_por_toma) if ml_por_toma > 0 else 0
         ml_por_toma_str = f"{ml_por_toma:.2f}".replace('.', ',')
+        ml_por_dia_str = f"{ml_por_dia:.2f}".replace('.', ',')
         gotas_por_toma = pauta['dosis_por_toma_gotas'] if tiene_gotas else None
         
         col1, col2, col3, col4 = st.columns(4)
@@ -755,8 +766,8 @@ with tab1:
             else:
                 st.markdown(f"""
                 <div style="text-align: center; padding: 8px 4px; background: #f8f9fa; border-radius: 6px; border: 1px solid #e9ecef;">
-                    <div style="font-size: 0.8rem; color: #666; margin-bottom: 2px;">Volumen por toma</div>
-                    <div style="font-size: 1.1rem; font-weight: 500; color: #2E7D32;">{ml_por_toma_str} mL/toma</div>
+                    <div style="font-size: 0.8rem; color: #666; margin-bottom: 2px;">Volumen por día</div>
+                    <div style="font-size: 1.1rem; font-weight: 500; color: #2E7D32;">{ml_por_dia_str} mL/día</div>
                 </div>
                 """, unsafe_allow_html=True)
         with col3:
