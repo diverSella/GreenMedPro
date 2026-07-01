@@ -650,8 +650,33 @@ with tab1:
         else:
             st.success(f"✅ {mensaje_validacion}")
         
+        # Calcular pauta con el número de tomas seleccionado
         calculadora = CalculadoraCBD(producto)
-        pauta = calculadora.calcular_pauta_completa(peso, dosis_por_kg)
+        # Calcular dosis por toma dividiendo la dosis diaria entre el número de tomas
+        mg_por_toma = (peso * dosis_por_kg) / tomas_por_dia
+        ml_por_toma = calculadora.convertir_a_ml(mg_por_toma)
+        gotas_por_toma = calculadora.convertir_a_gotas(mg_por_toma) if calculadora.mg_por_gota else None
+        
+        # Crear pauta personalizada con el número de tomas
+        pauta = {
+            "peso": peso,
+            "dosis_por_kg": dosis_por_kg,
+            "dosis_diaria_mg": peso * dosis_por_kg,
+            "dosis_por_toma_mg": mg_por_toma,
+            "dosis_por_toma_ml": ml_por_toma,
+            "tomas_por_dia": tomas_por_dia,
+            "ml_por_dia": ml_por_toma * tomas_por_dia,
+            "ml_mensual": ml_por_toma * tomas_por_dia * 30,
+            "mg_por_ml": calculadora.mg_por_ml,
+            "producto": producto_nombre,
+            "concentracion": producto.concentracion,
+            "tipo": producto.tipo,
+            "presentacion": producto.presentacion
+        }
+        
+        if gotas_por_toma is not None:
+            pauta["dosis_por_toma_gotas"] = gotas_por_toma
+            pauta["mg_por_gota"] = calculadora.mg_por_gota
         
         st.header("Pauta de Administración")
         
@@ -660,7 +685,6 @@ with tab1:
         # Construir el mensaje de dosis con el número de tomas
         if tiene_gotas:
             gotas_redondeadas = redondear_gotas(pauta['dosis_por_toma_gotas'])
-            # Ajustar mensaje según número de tomas
             if tomas_por_dia == 1:
                 mensaje_dosis = f"{gotas_redondeadas} gota una vez al día"
             elif tomas_por_dia == 2:
@@ -670,9 +694,9 @@ with tab1:
             else:
                 mensaje_dosis = f"{gotas_redondeadas} gotas {tomas_por_dia} veces al día"
         else:
-            # Para Xatiplex (jeringa), mostrar el volumen por toma y la frecuencia
+            # Para Xatiplex (jeringa), mostrar el volumen por toma con 2 decimales
             ml_por_toma = pauta['dosis_por_toma_ml']
-            ml_por_toma_str = f"{ml_por_toma:.1f}".replace('.', ',')
+            ml_por_toma_str = f"{ml_por_toma:.2f}".replace('.', ',')
             if tomas_por_dia == 1:
                 mensaje_dosis = f"{ml_por_toma_str} ml una vez al día"
             elif tomas_por_dia == 2:
@@ -744,7 +768,7 @@ with tab1:
         dosis_por_envase = math.floor(volumen_envase / ml_por_toma) if ml_por_toma > 0 else 0
         ml_por_toma_str = f"{ml_por_toma:.2f}".replace('.', ',')
         ml_por_dia_str = f"{ml_por_dia:.2f}".replace('.', ',')
-        gotas_por_toma = pauta['dosis_por_toma_gotas'] if tiene_gotas else None
+        gotas_por_toma = pauta.get('dosis_por_toma_gotas', None)
         
         col1, col2, col3, col4 = st.columns(4)
         with col1:
@@ -789,17 +813,17 @@ with tab1:
         st.subheader("Equivalencias para esta dosis")
         st.markdown("Si el paciente no puede comprar el producto seleccionado, estas son las dosis equivalentes con otros productos:")
         
-        mg_por_toma = pauta['dosis_por_toma_mg']
+        mg_por_toma_calc = pauta['dosis_por_toma_mg']
         productos_equivalencias = {}
         
         for prod_name in catalogo_productos.listar_productos():
             prod = catalogo_productos.get_producto(prod_name)
             calc = CalculadoraCBD(prod)
             if prod_name == "Xpectra 10":
-                gotas = calc.convertir_a_gotas(mg_por_toma)
-                productos_equivalencias[prod_name] = f"{gotas:.1f} gotas" if gotas else f"{calc.convertir_a_ml(mg_por_toma):.3f} ml"
+                gotas = calc.convertir_a_gotas(mg_por_toma_calc)
+                productos_equivalencias[prod_name] = f"{gotas:.1f} gotas" if gotas else f"{calc.convertir_a_ml(mg_por_toma_calc):.3f} ml"
             else:
-                productos_equivalencias[prod_name] = f"{calc.convertir_a_ml(mg_por_toma):.3f} ml"
+                productos_equivalencias[prod_name] = f"{calc.convertir_a_ml(mg_por_toma_calc):.3f} ml"
         
         df_equivalencias = pd.DataFrame({
             "Producto": list(productos_equivalencias.keys()),
@@ -897,7 +921,31 @@ with tab3:
     
     if peso > 0 and producto:
         calculadora = CalculadoraCBD(producto)
-        pauta = calculadora.calcular_pauta_completa(peso, dosis_por_kg)
+        # Calcular pauta con el número de tomas seleccionado
+        mg_por_toma = (peso * dosis_por_kg) / tomas_por_dia
+        ml_por_toma = calculadora.convertir_a_ml(mg_por_toma)
+        gotas_por_toma = calculadora.convertir_a_gotas(mg_por_toma) if calculadora.mg_por_gota else None
+        
+        pauta = {
+            "peso": peso,
+            "dosis_por_kg": dosis_por_kg,
+            "dosis_diaria_mg": peso * dosis_por_kg,
+            "dosis_por_toma_mg": mg_por_toma,
+            "dosis_por_toma_ml": ml_por_toma,
+            "tomas_por_dia": tomas_por_dia,
+            "ml_por_dia": ml_por_toma * tomas_por_dia,
+            "ml_mensual": ml_por_toma * tomas_por_dia * 30,
+            "mg_por_ml": calculadora.mg_por_ml,
+            "producto": producto_nombre,
+            "concentracion": producto.concentracion,
+            "tipo": producto.tipo,
+            "presentacion": producto.presentacion
+        }
+        
+        if gotas_por_toma is not None:
+            pauta["dosis_por_toma_gotas"] = gotas_por_toma
+            pauta["mg_por_gota"] = calculadora.mg_por_gota
+        
         pauta['paciente_nombre'] = paciente_nombre if paciente_nombre else "No especificado"
         pauta['edad'] = edad
         pauta['volumen_envase'] = st.session_state.volumen_envase
