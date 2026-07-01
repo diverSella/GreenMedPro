@@ -419,6 +419,8 @@ with st.sidebar:
             st.markdown('</div>', unsafe_allow_html=True)
             
             if st.button("Aplicar Producto/Dosis Recomendados", use_container_width=True, key="btn_aplicar_dosis"):
+                # Guardar la dosis recomendada en mg/kg
+                st.session_state.dosis_recomendada_valor = patologia.dosis_inicial
                 # Calcular la dosis en mg (dosis_inicial * peso)
                 dosis_en_mg = patologia.dosis_inicial * peso
                 st.session_state.dosis_personalizada = dosis_en_mg
@@ -575,25 +577,36 @@ with tab1:
         dosis_recomendada = st.session_state.dosis_recomendada
         dosis_actual = st.session_state.dosis_personalizada
         
-        # Badge de dosis recomendada aplicada
+        # Badge de dosis recomendada aplicada (en mg/kg/día)
         if st.session_state.dosis_aplicada and dosis_recomendada:
-            st.markdown(f'<div class="badge-recomendado">⭐ Dosis recomendada aplicada: {dosis_actual:.2f} mg/día</div>', unsafe_allow_html=True)
+            st.markdown(f'<div class="badge-recomendado">⭐ Dosis recomendada aplicada: {dosis_recomendada:.2f} mg/kg/día</div>', unsafe_allow_html=True)
         
         st.markdown('<div class="input-dosis-container">', unsafe_allow_html=True)
         st.markdown("**Ingrese la dosis (mg/kg/día):**")
+        
+        # Calcular la dosis en mg (mg/kg * peso) para mostrar en el campo
+        if st.session_state.dosis_aplicada and st.session_state.dosis_recomendada:
+            dosis_calculada = st.session_state.dosis_recomendada * peso
+        else:
+            dosis_calculada = st.session_state.dosis_personalizada
+        
         dosis_por_kg = st.number_input(
             "Dosis (mg/kg/día)",
             min_value=0.01,
             max_value=30.0,
-            value=st.session_state.dosis_personalizada,
+            value=float(dosis_calculada),
             step=0.01,
             key="input_dosis_personalizada",
             label_visibility="collapsed",
             format="%.2f"
         )
+        # Actualizar session_state con el valor actual (en mg)
         if dosis_por_kg != st.session_state.dosis_personalizada:
             st.session_state.dosis_personalizada = float(dosis_por_kg)
-            st.session_state.dosis_aplicada = False
+            # Si el usuario modifica manualmente, desactivar la dosis aplicada
+            if st.session_state.dosis_aplicada:
+                st.session_state.dosis_aplicada = False
+        
         st.markdown('</div>', unsafe_allow_html=True)
         
         if patologia_seleccionada:
